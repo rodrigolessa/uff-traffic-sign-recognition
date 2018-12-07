@@ -1,8 +1,6 @@
 https://doutormultas.com.br/placas-de-sinalizacao-de-transito/
 
 
-
-
 O que eu pensei sobre o projeto de reconhecimento de sinais de trânsito.
 
 Utilizar um conjunto de imagens de placas de sinalização para identificar alguns padrões entre os simbolos.
