@@ -1,3 +1,30 @@
+https://doutormultas.com.br/placas-de-sinalizacao-de-transito/
+
+
+
+
+O que eu pensei sobre o projeto de reconhecimento de sinais de trânsito.
+
+Utilizar um conjunto de imagens de placas de sinalização para identificar alguns padrões entre os simbolos.
+
+E como vai ser o preprocessamento das imagens:
+
+- Dividar a imagem em 3 camadas de cores;
+- Para cada camada aplicar um filtro mediano para a suavização de ruídos;
+- Detectar as bordas com Canny
+- Suavizar cantos das bordas encontradas
+- Encontrar formas geométicas pela quantidade de cantos
+- Exrair a parte da imagem encontrada
+- Para cada forma extrair as informações:
+- Encontrar percentual de cores dentro da forma
+- Aplicar o histograma para cada camada de cor (isso vai ser uma feature)
+- Extrair o perímetro
+- Extrair retangularidade
+
+
+
+
+
 2018-12-04
 
 Descrição do Projeto:
