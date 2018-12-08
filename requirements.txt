@@ -1,0 +1,12 @@
+numpy
+Pillow
+requests
+matplotlib
+mahotas
+opencv-contrib-python
+scipy
+scikit-image
+setuptools
+sip
+imutils
+PyQt5

@@ -1,6 +1,5 @@
 # Comparing Shape Descriptors
 
-# Import the necessary packages
 from scipy.spatial import distance as dist
  
 class Searcher:
@@ -17,6 +16,8 @@ class Searcher:
 			# Compute the distance between the query features
 			# and features in our index, then update the results
 			d = dist.euclidean(queryFeatures, features)
+			#print('K: {}'.format(k))
+			#print('Features: {}'.format(features))
 			#print('Distance: {}'.format(d))
 			results[k] = d
  
