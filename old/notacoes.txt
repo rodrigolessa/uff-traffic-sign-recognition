@@ -1,0 +1,233 @@
+https://doutormultas.com.br/placas-de-sinalizacao-de-transito/
+
+
+O que eu pensei sobre o projeto de reconhecimento de sinais de trânsito.
+
+Utilizar um conjunto de imagens de placas de sinalização para identificar alguns padrões entre os simbolos.
+
+E como vai ser o preprocessamento das imagens:
+
+- Dividar a imagem em 3 camadas de cores;
+- Para cada camada aplicar um filtro mediano para a suavização de ruídos;
+- Detectar as bordas com Canny
+- Suavizar cantos das bordas encontradas
+- Encontrar formas geométicas pela quantidade de cantos
+- Exrair a parte da imagem encontrada
+- Para cada forma extrair as informações:
+- Encontrar percentual de cores dentro da forma
+- Aplicar o histograma para cada camada de cor (isso vai ser uma feature)
+- Extrair o perímetro
+- Extrair retangularidade
+
+
+
+
+
+2018-12-04
+
+Descrição do Projeto:
+
+Análise de rodovias
+
+Analisar as sinalizações de trânsitos de rodovias para sugerir melhorias para segurança dos condutores de veículos em área de risco.
+
+Utilizando um conjunto de imagens de placas de sinalização conseguimos identificar alguns padrões entre os simbolos:
+
+
+
+Referências:
+http://www.cvl.isy.liu.se/en/research/ima/index.html
+
+-----------------------------------------------------
+2018-12-05
+
+img = cv2.imread('ponte.jpg')
+(canalAzul, canalVerde, canalVermelho) = cv2.split(img)
+cv2.imshow("Vermelho", canalVermelho)
+cv2.imshow("Verde", canalVerde)
+cv2.imshow("Azul", canalAzul)
+
+Um canal para cada tipo de placa
+
+uff.traffic.sign.recognition
+
+-----------------------------------------------------
+2018-11-30
+Processamento
+
+Pipeline:
+ ----- Conversão da imagem colorida para escala de cinza
+ - Dividar a imagem nas 3 camadas de cores (efetuar o processamento para cada)
+ - Filtro bilateral (noise-reducing. based on a Gaussian distribution)
+ - Segmentação
+ - Detector de bordas de Canny
+ - Suavizar cantos das bordas encontradas
+ - Encontrar formas geométicas pela quantidade de cantos
+ - Desenhar forma na imagem
+ - Exrair parte da imagem encontrada
+ - Encontrar percentual de cores dentro da forma
+ ----- Descritores de forma
+ - Extrair perímetro da forma
+ - Extrair retangularidade
+ - ? extrair outra
+
+Tipos das imagens:
+ - Imagem original
+ - Sua segmentação baseada em fronteiras ou bordas
+ - Desenho da forma encontrada, maior forma com a quantidade de angulos esparada.
+
+1 - Descritores de forma 
+
+1.1 - Características Dimensionais
+
+1.1.1 - Perímetro, Alongamento e Retangularidade
+
+ * Perímetro - número de pixels conexos que constituem o contorno da região.
+
+ * TRIANGULOS
+
+Imagem: traffic_sign_canny_douglaspeucker_13.jpg
+Perimetro: 525.3868639469147
+[124  53]
+[207 210]
+[283  77]
+
+Imagem: traffic_sign_canny_douglaspeucker_23.jpg
+Perimetro: 1076.1463112831116
+[163   3]
+[  1 294]
+[335 297]
+
+Imagem: traffic_sign_canny_douglaspeucker_33.jpg
+Perimetro: 834.5239470005035
+[168  39]
+[ 37 269]
+[301 269]
+
+Imagem: traffic_sign_canny_douglaspeucker_43.jpg
+Perimetro: 842.180801153183
+[168  38]
+[ 36 270]
+[302 270]
+
+ * QUADRADOS
+
+Imagem: traffic_sign_canny_square_13.jpg
+Perimetro: 759.2489259243011
+[180  22]
+[ 49 159]
+[185 287]
+[313 153]
+
+Imagem: traffic_sign_canny_square_23.jpg
+Perimetro: 831.2733030319214
+[149   4]
+[  4 150]
+[150 295]
+[295 149]
+
+Imagem: traffic_sign_canny_square_33.jpg
+Perimetro: 840.4448651075363
+[149   3]
+[  3 152]
+[153 296]
+[296 147]
+
+Imagem: traffic_sign_canny_square_43.jpg
+Perimetro: 741.1656595468521
+[190  13]
+[314 144]
+[204 271]
+[ 68 133]
+
+
+ * The Ramer–Douglas–Peucker algorithm, also known as the Douglas–Peucker algorithm and iterative end-point fit algorithm, is an algorithm that decimates a curve composed of line segments to a similar curve with fewer points.
+
+ * The Canny edge detector is an edge detection operator that uses a multi-stage algorithm to detect a wide range of edges in images. It was developed by John F. Canny in 1986. Canny also produced a computational theory of edge detection explaining why the technique works.
+
+
+
+2 - Features color
+
+Anotar cores como características das placas para reconhecimento;
+
+
+3 - Histogramas de cores como features da imagem
+
+
+
+
+
+
+
+
+
+
+
+Preprocessamento das Imagens
+
+Cada imagem é convertida a sua forma em escalas de cinza e é aplicado um filtro mediano para a suavização de ruídos tipo salt-and-peper. Após, é aplicado um filtro bilateral para remoção dos demais ruídos.
+
+O limiar de cada figura é extraído utilizando o método de Otsu's
+
+Extração de Características
+
+Cada figura é submetido a um processo de extração de características desempenhado pelos descritores. As características extraídas de figura são agrupadas de forma vetorial v ? Rd onde d é a dimensão do vetor (quantidade de características extraídas).
+
+Para extração de características nós utilizamos uma fusão de descritores baseados em região e descritores baseados em contornos. 
+Para descrever a forma global do artefato são usados os momentos de Zernike [] correspondente as oito primeiras ordens dos momentos, correspondendo a um total de 25 polinômios. 
+Para descrescrever o contorno são usados quatro descritores geométricos: circularidade, energia de exão média, excentricidade e convexidade. Esses descritores provaram ser robustos e simples o suciente para assegurar performace de tempo e acurácia [].
+
+
+O Vector Space Model (VSM) 
+é uma técnica conhecida no contexto de problemas relacionados à obtenção de informação (IR). Essa técnica baseia-se em interpretar um documento como um vetor, onde cada dimensão corresponde a uma característica do documento. A representação vetorial do documento permite a aplicação de métricas para análise de dissimilaridade como a distância Euclideana (Denição B.4) e a distância de cosseno
+
+Particionamento extração de características locais
+é responsável por descrever localmente uma imagem (e suas porções) em termos das características existentes identicadas. Primeiro, a imagem é particionada e cada porção é descrita e suas características extraídas e organizadas de forma vetorial. Existe uma grande variedade de técnicas para particionar e descrever porções disponíveis na literatura. Como exemplo, os descritores baseados em momentos (Zernike) e os baseados em pontos de interesse (Hessian Ane e SIFT).
+
+Aprendizado do dicionário de palavas visuais
+Após a denição dos vetores de características das imagens, é aprendido o dicionário de palavras visuais a partir da quantização do espaço de características. Esse passo se dá ao submeter os vetores de características a uma técnica de clusterização.
+Popularmente são utilizadas técnicas como o k-means [] e meanshift []. O conjunto de clusters aprendidos atuam como o dicionário e, individualmente, cada cluster é generalização que representa um conjunto de palavra visuais.
+
+
+
+
+
+Denição B.3. Descritores de imagem são um conjuntos de técnicas que descrevem imagens em termos de suas características como forma, cor, textura, movimento entre outros. Descritores globais procuram identicar características gerais de uma imagem, enquanto descritores locais procuram características em partes especícas de uma imagem. Alguns descritores globais são listados abaixo.
+1. Momentos de Zernike
+Os momentos de Zernike (Teorema 2) são obtidos através de um conjunto único e idependente, i.e. ortogonal, de polinômios em uma unidade de círculo U : x2 +y2 = 1, conhecidos como polinômios de Zernike [1, 5].
+2. Geométricos
+Dado um artefato T, alguns descritores geométricos e suas características são denidos como seguem:
+? Circularidade
+A característica de circularidade é denida como a relação quadrada do perímetro pela área.
+Tcra =
+T2perimetro 4pTarea
+(B.1)
+? Energia de Flexão Média
+A característica de energia de exão média é denida por
+Tefm =
+1 N
+N-1 X s=0
+K(s)2 (B.2)
+onde, para uma curva parametrizada G(t) = (x(t),y(t)), k = |x0y00-y0x00| (x02+y02) 3 2
+.
+Appendix B -- Conceitos Básicos 14
+? Excentricidade
+A característica de excentricidade (Teorema 3) é denida pelo cruzamento unicamente ortogonal dos principais eixos através do centroíde representando as direções de cruzamento sem correlação.
+Texc =
+?2 ?1
+(B.3)
+onde ?1 e ?2 são os autovalores da matrix de covariância do contorno do artefato.
+? Convexidade
+A característica de Convexidade é denido como a relação entre o perímetro do casco convexo de um artefato e seu perímetro.
+Tcov =
+Tcascoconvexo Tperimetro
+(B.4)
+Denição B.4. distancias/similaridade/dissimilaridade
+? Distância Euclideana
+...
+? Distância das Hierarquías Visuais
+Denição B.5. A clusterização é um conjunto de técnicas de aprendização não supervisionado responsáveis por agrupar dados não rotulados através da similaridade entre eles. A similaridade pode ser medida através de uma função de distância, como a distancia Euclideana (Denição B.4), aplicada aos vetores de características de dois dados. Os clusters obtidos ao m do processo de clusterização atual como rótulos aprendidos.
+? k-means
+A técnica de clusterização k-means (Teorema 1) é um método quatização vetorial popular na análise de clusters em mineração de dados. A técnica agrupa os dados de forma a separar amostras em grupos de igual variância, minimizando o critério inércia (soma dos quadrados das distâncias dentro de um cluster (WCSS)).
+Denição B.6. meanshift
