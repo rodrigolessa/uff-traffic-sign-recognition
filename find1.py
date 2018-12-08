@@ -1,20 +1,16 @@
 # The main goal is to find the screen of Game and highlight it, 
 
 # iIport the necessary packages
+from zernike_moments import ZernikeMoments
+from searcher import Searcher
 # The image_utils contains convenience methods to handle basic image processing techniques
 # resizing, rotating, and translating. 
 import imutils
 import numpy as np
 #import argparse
 import cv2
+import pickle as cp
 import matplotlib.pyplot as plt
-#from skimage import exposure
-#from skimage import data, io, filters
-#image = data.coins()
-## ... or any other NumPy array!
-#edges = filters.sobel(image)
-#io.imshow(edges)
-#io.show()
 
 # construct the argument parser and parse the arguments
 #ap = argparse.ArgumentParser()
@@ -24,12 +20,20 @@ import matplotlib.pyplot as plt
 #args = vars(ap.parse_args())
 
 # Triangle signs:
-#imageName = "dataset_traffic_sign/a100036_traffic-sign_7-2.jpg"
-#imageName = "dataset_traffic_sign/480px_thailand_road.png"
-#imageName = "dataset_traffic_sign/ANZ_traffic_lights_ahead_sign.png"
-imageName = "sinalizacao_brasileira_fotos\\edit\\152116938.jpg"
-imageNumber = "4"
-imageRef = "traffic_sign_canny_square_"
+#imageName = "sinalizacao_brasileira_fotos\\edit\\152116938.jpg"
+imageName = "sinalizacao_brasileira_fotos\\edit\\iStock-852213974-750x410.jpg"
+#imageNumber = "4"
+#imageRef = "traffic_sign_canny_square_"
+
+# Load the index
+imageMomentsFile = open('index.pkl', 'rb')
+indexa = cp.load(imageMomentsFile)
+
+# Perform the search to identify the image
+searcher = Searcher(indexa)
+
+# Initialize descriptor with a radius of 180 pixels
+zm = ZernikeMoments(180)
 
 # Load the query image, 
 image = cv2.imread(imageName)
@@ -123,67 +127,95 @@ screenCnt = None
 
 # Loop over contours
 for c in cnts:
-    # cv2.arcLength and cv2.approxPolyDP. 
-    # These methods are used to approximate the polygonal curves of a contour.
-    peri = cv2.arcLength(c, True)
+        # cv2.arcLength and cv2.approxPolyDP. 
+        # These methods are used to approximate the polygonal curves of a contour.
+        peri = cv2.arcLength(c, True)
 
-    print(peri)
+        print(peri)
 
-    # Level of approximation precision. 
-    # In this case, we use 2% of the perimeter of the contour.
-    #* The Ramer–Douglas–Peucker algorithm, also known as the Douglas–Peucker algorithm and iterative end-point fit algorithm, 
-    # is an algorithm that decimates a curve composed of line segments to a similar curve with fewer point
-    approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+        # Level of approximation precision. 
+        # In this case, we use 2% of the perimeter of the contour.
+        #* The Ramer–Douglas–Peucker algorithm, also known as the Douglas–Peucker algorithm and iterative end-point fit algorithm, 
+        # is an algorithm that decimates a curve composed of line segments to a similar curve with fewer point
+        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
 
-    print(approx)
+        print(approx)
 
-    # we know that a Object screen is a rectangle,
-    # and we know that a rectangle has four sides, thus has four vertices.
-    # If our approximated contour has four points, then
-    # we can assume that we have found our screen.
-    if len(approx) == 4:
-        screenCnt = approx
-        # Cortar a ára na imagem original
-        x, y, w, h = cv2.boundingRect(approx)
-        # make the box a little bigger
-        #x, y, w, h = x-5, y-5, w+5, h+5
-        crop = blur[y:y+h, x:x+w]
-        cv2.imshow("Crop the blur thing", crop)
-        cv2.waitKey(0)
+        # we know that a Object screen is a rectangle,
+        # and we know that a rectangle has four sides, thus has four vertices.
+        # If our approximated contour has four points, then
+        # we can assume that we have found our screen.
+        if len(approx) == 4:
 
-        #mblur = cv2.medianBlur(crop, 5)
-        _, thresh = cv2.threshold(crop, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        thresh = cv2.bitwise_not(thresh)
-        #thresh[thresh > 0] = 255
+                screenCnt = approx
+                
+                # Cortar a ára na imagem original
+                x, y, w, h = cv2.boundingRect(approx)
+                # make the box a little bigger
+                #x, y, w, h = x-5, y-5, w+5, h+5
 
-        cv2.imshow("Crop the original", thresh)
-        cv2.imwrite("thresh.jpg", thresh)
-        cv2.waitKey(0)
+                bouding = image.copy()
+                
+                # draw a green rectangle to visualize the bounding rect
+                #cv2.drawContours(bouding, cv2.boundingRect(approx), -1, (0, 255, 0), 5)
+                cv2.rectangle(bouding, (x -5, y -5), (x + w + 5, y + h + 5), (0, 255, 0), 5)
+                
+                cv2.imshow("Boundingbox", bouding)
+                cv2.imwrite("boundingbox.jpg", bouding)
+                cv2.waitKey(0)
 
-        img_row_sum = np.sum(thresh, axis=1).tolist()
-        plt.plot(img_row_sum)
-        plt.show()
-        cv2.waitKey(0)
-        # Extrair a característica:
-        # Encontrar o histograma de cada camada
-        # Binarização e limiar com Otsu
-        # Extrair as características:
-        # Encontrar a área
-        # Encontrar a Variância de projeção vertical
-        # Utilizar o dataset anotado de placas e comparar utilizando distância Euclidiana
-        break
+                crop = blur[y:y+h, x:x+w]
 
-# Drawing our screen contours, we can clearly see that we have found the Object screen
-#if isinstance(screenCnt, list):
-cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 5)
-cv2.imshow("Object Screen", image)
-cv2.imwrite("object.jpg", image)
-cv2.waitKey(0)
+                cv2.imshow("Crop the blur thing", crop)
+                cv2.waitKey(0)
 
-#res = np.hstack((original, edged, image))
+                # Redimencionar imagem
+                resized = imutils.resize(crop, width=180)
 
-#cv2.imwrite('traffic_sign_canny_douglaspeucker_1.jpg', res)
-#cv2.imshow("Resultados", res)
-#cv2.waitKey(0)
+                #mblur = cv2.medianBlur(crop, 5)
+                # Binarização e limiar com Otsu
+                _, thresh = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+                
+                thresh = cv2.bitwise_not(thresh)
+                #thresh[thresh > 0] = 255
+
+                cv2.imshow("Threshold", thresh)
+                cv2.imwrite("thresh.jpg", thresh)
+                cv2.waitKey(0)
+
+                # Histograma de projeção/variância vertical
+                #img_row_sum = np.sum(thresh, axis=1).tolist()
+                #plt.plot(img_row_sum)
+                #plt.show()
+                #cv2.waitKey(0)
+
+                # Drawing our screen contours, we can clearly see that we have found the Object screen
+                #if isinstance(screenCnt, list):
+                cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 5)
+                cv2.imshow("Object Screen", image)
+                cv2.imwrite("object.jpg", image)
+                cv2.waitKey(0)
+
+                #res = np.hstack((original, edged, image))
+
+                # Extrair a característica:
+                # Encontrar o histograma de cada camada
+                # Encontrar a área
+                # Encontrar a Variância de projeção vertical
+		# Compute Zernike moments to characterize the shape of object outline
+                moments = zm.describe(thresh)
+
+                # Utilizar o dataset anotado de placas e comparar utilizando distância Euclidiana
+                # Return 5 first similarities
+                results = searcher.search(indexa, moments)[:5]
+                for r in results:
+                        #imageZeros = '{-:0>3}'.format(imageNumber)
+                        image_ref = r[1]
+                        image_distance = r[0]
+
+                        if image_distance <= 0.901:
+                                print(image_ref)
+
+                break
 
 cv2.destroyAllWindows()
