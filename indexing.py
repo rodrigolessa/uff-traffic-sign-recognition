@@ -12,22 +12,26 @@ import argparse
 import cv2
 import pickle as cp
 import glob
+import imutils
 # Managing windows files
 import os
 import sys
 
 # Construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-f", "--folder", required = True, help = "Path to where the files has stored")
-ap.add_argument("-e", "--extension", required = True, help = "Extension of the images")
-ap.add_argument("-i", "--index", required = True, help = "Path to where the index file will be stored")
+#ap = argparse.ArgumentParser()
+#ap.add_argument("-f", "--folder", required = True, help = "Path to where the files has stored")
+#ap.add_argument("-e", "--extension", required = True, help = "Extension of the images")
+#ap.add_argument("-i", "--index", required = True, help = "Path to where the index file will be stored")
 
-args = vars(ap.parse_args())
+#args = vars(ap.parse_args())
 
-imageFolder = args["folder"] #'logos'
-imageExtension = '.' + args["extension"].lower() #'.png'
+#imageFolder = args["folder"] #'logos'
+imageFolder = "sinalizacao_brasileira_definicao\\selecionados"
+#imageExtension = '.' + args["extension"].lower() #'.png'
+imageExtension = '.jpg'
 imageFinder = '{}/*{}'.format(imageFolder, imageExtension)
-imageMomentsFile = args["index"] #'index.pkl'
+#imageMomentsFile = args["index"] #'index.pkl'
+imageMomentsFile = 'index.pkl'
 
 index = {}
 
@@ -64,7 +68,7 @@ for spritePath in imagesInFolder:
 
 	# Try to manipulate the image if it is possible
 	try:
-		progress(i, qt)
+		#progress(i, qt)
 
 		# then load the image.
 		image = cv2.imread(spritePath)
@@ -75,8 +79,16 @@ for spritePath in imagesInFolder:
 		# Bilateral Filter can reduce unwanted noise very well
 		blur = cv2.bilateralFilter(grayscale, 9, 75, 75)
 
+		# Redimencionar imagem
+		resized = imutils.resize(blur, width=180)
+
 		# Then, any pixel with a value greater than zero (black) is set to 255 (white)
-		_, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+		_, thresh = cv2.threshold(resized, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+		thresh = cv2.bitwise_not(thresh)
+
+		cv2.imshow("Threshold", thresh)
+		cv2.waitKey(0)
 
 		# Compute Zernike moments to characterize the shape of object outline
 		moments = zm.describe(thresh)
@@ -88,6 +100,8 @@ for spritePath in imagesInFolder:
 
 	except:
 		pass
+
+cv2.destroyAllWindows()
 
 # cPickle for writing the index in a file
 with open(imageMomentsFile, "wb") as outputFile:
