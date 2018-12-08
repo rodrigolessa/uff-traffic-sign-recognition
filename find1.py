@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 #imageName = "dataset_traffic_sign/a100036_traffic-sign_7-2.jpg"
 #imageName = "dataset_traffic_sign/480px_thailand_road.png"
 #imageName = "dataset_traffic_sign/ANZ_traffic_lights_ahead_sign.png"
-imageName = "dataset_traffic_sign_sweden_camera/1277383342Image000102.jpg"
+imageName = "sinalizacao_brasileira_fotos\\edit\\152116938.jpg"
 imageNumber = "4"
 imageRef = "traffic_sign_canny_square_"
 
@@ -102,9 +102,10 @@ edged = cv2.Canny(blur, 30, 200)
 
 # Debugging:
 cv2.imshow("Canny", edged)
+cv2.imwrite("canny.jpg", edged)
 cv2.waitKey(0)
 
-cv2.imwrite(imageRef + imageNumber + "2.jpg", edged)
+#cv2.imwrite(imageRef + imageNumber + "2.jpg", edged)
 
 # Find contours in the edged image, keep only the largest ones, 
 # and initialize our screen contour:
@@ -140,7 +141,7 @@ for c in cnts:
     # and we know that a rectangle has four sides, thus has four vertices.
     # If our approximated contour has four points, then
     # we can assume that we have found our screen.
-    if len(approx) == 3:
+    if len(approx) == 4:
         screenCnt = approx
         # Cortar a ára na imagem original
         x, y, w, h = cv2.boundingRect(approx)
@@ -156,6 +157,7 @@ for c in cnts:
         #thresh[thresh > 0] = 255
 
         cv2.imshow("Crop the original", thresh)
+        cv2.imwrite("thresh.jpg", thresh)
         cv2.waitKey(0)
 
         img_row_sum = np.sum(thresh, axis=1).tolist()
@@ -175,9 +177,8 @@ for c in cnts:
 #if isinstance(screenCnt, list):
 cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 5)
 cv2.imshow("Object Screen", image)
+cv2.imwrite("object.jpg", image)
 cv2.waitKey(0)
-
-cv2.imwrite(imageRef + imageNumber + "3.jpg", image)
 
 #res = np.hstack((original, edged, image))
 
