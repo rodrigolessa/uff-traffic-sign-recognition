@@ -12,18 +12,9 @@ import numpy as np
 import cv2
 import pickle as cp
 import matplotlib.pyplot as plt
-
-def _img_resize(image, imSize):
-	new = imutils.resize(image, height=imSize)
-	if new.shape[1] > imSize:
-		new = imutils.resize(image, width=imSize)
-
-	border_size_x = (imSize - new.shape[1])//2
-	border_size_y = (imSize - new.shape[0])//2
-
-	new = cv2.copyMakeBorder(new, border_size_y + imSize, border_size_y + imSize, border_size_x + imSize, border_size_x + imSize, cv2.BORDER_REPLICATE)
-
-	return new
+import glob
+import os
+import sys
 
 # construct the argument parser and parse the arguments
 #ap = argparse.ArgumentParser()
@@ -32,9 +23,9 @@ def _img_resize(image, imSize):
 # --query points to the path to where query image is stored on disk.
 #args = vars(ap.parse_args())
 
-# Triangle signs:
-imageName = "sinalizacao_brasileira_fotos\\edit\\152116938.jpg"
-#imageName = "sinalizacao_brasileira_fotos\\edit\\iStock-852213974-750x410.jpg"
+imageFolder = "sinalizacao_brasileira_definicao\\selecionados"
+imageExtension = '.jpg'
+imageFinder = '{}\\*{}'.format(imageFolder, imageExtension)
 imageRadius = 180
 
 # Load the index of features

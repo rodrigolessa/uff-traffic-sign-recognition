@@ -1,6 +1,7 @@
 # Comparing Shape Descriptors
 
 from scipy.spatial import distance as dist
+import numpy as np
  
 class Searcher:
 	def __init__(self, index):
@@ -15,7 +16,8 @@ class Searcher:
 		for (k, features) in queryIndex.items():
 			# Compute the distance between the query features
 			# and features in our index, then update the results
-			d = dist.euclidean(queryFeatures, features)
+			# d = dist.euclidean(queryFeatures, features)
+			d = np.linalg.norm(queryFeatures - features)
 			#print('K: {}'.format(k))
 			#print('Features: {}'.format(features))
 			#print('Distance: {}'.format(d))
