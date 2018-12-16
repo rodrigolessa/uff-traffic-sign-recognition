@@ -1,10 +1,4 @@
-﻿# Indexing the dataset by quantifying each image in terms of shape.
-# Apply the shape descriptor defined to every sprite in dataset.
-# Frist we need the outline (or mask) of the object in the image 
-# prior to applying Zernike moments. 
-# In order to find the outline, we need to apply segmentation
-
-# Import the necessary packages
+﻿# Import the necessary packages
 from zernike_moments import ZernikeMoments
 from PIL import Image, ImageOps
 import numpy as np
@@ -28,8 +22,9 @@ import sys
 
 #imageFolder = args["folder"] #'logos'
 imageFolder = "sinalizacao_brasileira_definicao\\selecionados"
+imageFolderThreshold = imageFolder + '\\threshold'
 #imageExtension = '.' + args["extension"].lower() #'.png'
-imageExtension = '.jpg'
+imageExtension = '.png'
 imageFinder = '{}\\*{}'.format(imageFolder, imageExtension)
 #imageMomentsFile = args["index"] #'index.pkl'
 imageMomentsFile = 'index.pkl'

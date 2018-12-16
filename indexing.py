@@ -13,10 +13,9 @@ import cv2
 import pickle as cp
 import glob
 import imutils
-# import myutils as ut
-# Managing windows files
 import os
 import sys
+import time
 
 # Construct the argument parser and parse the arguments
 #ap = argparse.ArgumentParser()
@@ -28,6 +27,7 @@ import sys
 
 #imageFolder = args["folder"] #'logos'
 imageFolder = "sinalizacao_brasileira_definicao\\selecionados"
+imageFolderThreshold = imageFolder + '\\threshold'
 #imageExtension = '.' + args["extension"].lower() #'.png'
 imageExtension = '.jpg'
 imageFinder = '{}\\*{}'.format(imageFolder, imageExtension)
@@ -41,16 +41,19 @@ try:
 	# If index file exists, try to delete
     os.remove(imageMomentsFile)
 	# If folder to hold thresholder exists, try to delete
-	os.remove(imageFolder + '\\threshold')
+	#os.remove(imageFolderThreshold)
 except OSError:
     pass
 
 try:
-    os.makedirs(imageFolder + '\\threshold')
+    os.makedirs(imageFolderThreshold)
 except OSError as e:
-    if e.errno != errno.EEXIST:
-        raise
+	pass
+	#import errno
+    #if e.errno != errno.EEXIST:
+    #raise
 
+# Simulate a progress bar
 def progress(count, total, status=''):
     bar_len = 60
     filled_len = int(round(bar_len * count / float(total)))
@@ -60,6 +63,8 @@ def progress(count, total, status=''):
 
     sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
     sys.stdout.flush()
+
+startIndexing = time.time()
 
 # Initialize descriptor with a radius of 160 pixels
 zm = ZernikeMoments(imageRadius)
@@ -87,6 +92,9 @@ for spritePath in imagesInFolder:
 	# then load the image.
 	original = cv2.imread(spritePath)
 
+	# TODO: Extract features of Texture
+	# The dominate color
+
 	# Convert it to grayscale
 	grayscale = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
 
@@ -98,13 +106,19 @@ for spritePath in imagesInFolder:
 	# resized = _img_resize(blur, imageRadius)
 	resized = imutils.resize(blur, width=180)
 
+	# TODO: Extract features of Shape
+	# How many angles
+	# Classify the objects in 4 basics shapes: Triangle, Quadrilateral, Octagon and Circle
+
 	#resized = add_border(resized, output_image='resized.jpg', border=100, color='white')
 	row, col = resized.shape[:2]
 	bottom = resized[row-2:row, 0:col]
 	mean = cv2.mean(bottom)[0]
-
+	# Defining space between object and the border of the image.
+	# It's importante for Zernike calculate the moments correctly
 	bordersize = 100
-	bordered = cv2.copyMakeBorder(resized, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize, borderType= cv2.BORDER_CONSTANT, value=[mean,mean,mean] )
+	# Create the border
+	bordered = cv2.copyMakeBorder(resized, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize, borderType= cv2.BORDER_CONSTANT, value=[mean,mean,mean])
 
 	# Then, any pixel with a value greater than zero (black) is set to 255 (white)
 	_, thresh = cv2.threshold(bordered, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -114,6 +128,7 @@ for spritePath in imagesInFolder:
 	# debbuging:
 	# cv2.imshow("Threshold", thresh)
 	# cv2.waitKey(0)
+	cv2.imwrite("{}\\{}.png".format(imageFolderThreshold, imageName), thresh)
 
 	# Compute Zernike moments to characterize the shape of object outline
 	moments = zm.describe(thresh)
@@ -128,3 +143,10 @@ cv2.destroyAllWindows()
 # cPickle for writing the index in a file
 with open(imageMomentsFile, "wb") as outputFile:
 	cp.dump(index, outputFile, protocol=cp.HIGHEST_PROTOCOL)
+
+doneIndexing = time.time()
+
+elapsed = (doneIndexing - startIndexing) / 1000
+
+print(" ")
+print(elapsed)

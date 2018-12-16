@@ -32,9 +32,17 @@ def _img_resize(image, imSize):
 # --query points to the path to where query image is stored on disk.
 #args = vars(ap.parse_args())
 
-# Triangle signs:
-imageName = "sinalizacao_brasileira_fotos\\edit\\152116938.jpg"
-#imageName = "sinalizacao_brasileira_fotos\\edit\\iStock-852213974-750x410.jpg"
+# Tests signs:
+
+imageName = "sinalizacao_brasileira_fotos\\edit\\permitido_ciclistas.jpg"
+#  - similarity - v1
+
+# imageName = "sinalizacao_brasileira_fotos\\edit\\Parada_obrigatoria.jpg" 
+# 0.03862711197553565 - similarity - v1
+
+#imageName = "sinalizacao_brasileira_fotos\\edit\\Servicos_Auxiliares_i.png"
+# 0.07263111311518465 - similarity - v1
+
 imageRadius = 180
 
 # Load the index of features
@@ -56,11 +64,11 @@ image = cv2.imread(imageName)
 
 # Compute the ratio of the old height
 # to the new height, clone it, and resize it
-#ratio = image.shape[0] / 200.0
+# ratio = image.shape[0] / 200.0
 
 # Resize it - The smaller the image is, the faster it is to process
-#image = cv2.resize(image, None, fx=0.95, fy=0.95, interpolation = cv2.INTER_CUBIC)
-#image = ut.resize(image, width = 500, inter = cv2.INTER_CUBIC)
+# image = cv2.resize(image, None, fx=0.95, fy=0.95, interpolation = cv2.INTER_CUBIC)
+# image = ut.resize(image, width = 500, inter = cv2.INTER_CUBIC)
 image = imutils.resize(image, height=500)
 
 # Debugging: Show the original
@@ -69,18 +77,18 @@ cv2.waitKey(0)
 
 ######################################################
 # Separar os canais
-#canais = cv2.split(image)
-#cores = ('blue', 'green', 'red')
-#b_channel, g_channel, r_channel = cv2.split(image)
+# canais = cv2.split(image)
+# cores = ('blue', 'green', 'red')
+# b_channel, g_channel, r_channel = cv2.split(image)
 
-#cv2.imshow("Canais", r_channel)
-#cv2.waitKey(0)
+# cv2.imshow("Canais", r_channel)
+# cv2.waitKey(0)
 
 # Convert the image to grayscale,
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-#cv2.imshow("grayscale", r_channel)
-#cv2.waitKey(0)
+# cv2.imshow("grayscale", r_channel)
+# cv2.waitKey(0)
 
 ######################################################
 # Equalização baseado em histograma da imagem
@@ -91,11 +99,11 @@ clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
 
 cl1 = clahe.apply(gray)
 
-#res = np.hstack((img, cl1))
-#cv2.imwrite('res.png', res)
-#cv2.imshow("equalization", cl1)
-#cv2.imwrite("equalization.jpg", cl1) # save frame as JPEG file
-#cv2.waitKey(0)
+# res = np.hstack((img, cl1))
+# cv2.imwrite('res.png', res)
+# cv2.imshow("equalization", cl1)
+# cv2.imwrite("equalization.jpg", cl1) # save frame as JPEG file
+# cv2.waitKey(0)
 
 # Blur the image slightly by using the cv2.bilateralFilter function
 # Bilateral filtering has the nice property of removing noise in the image 
@@ -115,7 +123,7 @@ edged = cv2.Canny(blur, 30, 200)
 
 # Debugging:
 cv2.imshow("canny", edged)
-#cv2.imwrite("canny.jpg", edged)
+# cv2.imwrite("canny.jpg", edged)
 cv2.waitKey(0)
 
 # Find contours in the edged image, keep only the largest ones, 
@@ -126,10 +134,10 @@ cv2.waitKey(0)
 # We could have also used the cv2.RETR_LIST option as well;
 # To compress the contours to save space using cv2.CV_CHAIN_APPROX_SIMPLE.
 image2, cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-#cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.cv2.CV_CHAIN_APPROX_NONE)[1]
+# cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.cv2.CV_CHAIN_APPROX_NONE)[1]
 
 # Return only the 10 largest contours
-cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:10]
+cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:15]
 
 # Initialize empty list
 lst_intensities = []
@@ -137,17 +145,17 @@ lst_intensities = []
 img = blur.copy()
 
 # For each list of contour points...
-#for i in range(len(cnts)):
+# for i in range(len(cnts)):
         # Create a mask image that contains the contour filled in
-        #cimg = np.zeros_like(img)
-        #cv2.drawContours(cimg, cnts, i, color=255, thickness=-1)
+        # cimg = np.zeros_like(img)
+        # cv2.drawContours(cimg, cnts, i, color=255, thickness=-1)
 
         # Access the image pixels and create a 1D numpy array then add to list
-        #pts = np.where(cimg == 255)
-        #lst_intensities.append(img[pts[0], pts[1]])
+        # pts = np.where(cimg == 255)
+        # lst_intensities.append(img[pts[0], pts[1]])
 
-#cv2.imshow("Threshold", cimg)
-#cv2.waitKey(0)
+# cv2.imshow("Threshold", cimg)
+# cv2.waitKey(0)
 
 # Initialize screenCnt, the contour that corresponds to our object to find
 screenCnt = None
@@ -162,17 +170,17 @@ for c in cnts:
 
         # Level of approximation precision. 
         # In this case, we use 2% of the perimeter of the contour.
-        #* The Ramer–Douglas–Peucker algorithm, also known as the Douglas–Peucker algorithm and iterative end-point fit algorithm, 
+        # * The Ramer–Douglas–Peucker algorithm, also known as the Douglas–Peucker algorithm and iterative end-point fit algorithm, 
         # is an algorithm that decimates a curve composed of line segments to a similar curve with fewer point
         approx = cv2.approxPolyDP(c, 0.02 * peri, True)
 
-        #print(approx)
+        # print(approx)
 
         # we know that a Object screen is a rectangle,
         # and we know that a rectangle has four sides, thus has four vertices.
         # If our approximated contour has four points, then
         # we can assume that we have found our screen.
-        if len(approx) == 4 or len(approx) == 3:
+        if len(approx) == 8 or len(approx) == 4 or len(approx) == 3:
 
                 screenCnt = approx
                 
@@ -181,10 +189,10 @@ for c in cnts:
                 # make the box a little bigger
                 x, y, w, h = x - 8, y - 8, w + 8, h + 8
 
-                #rect = cv2.boundingRect(approx)
-                #Mat subMat = new Mat(mRgba, rect)
-                #Mat zeroMat = np.zeros(subMat.size(),subMat.type())
-                #zeroMat.copyTo(subMat)
+                # rect = cv2.boundingRect(approx)
+                # Mat subMat = new Mat(mRgba, rect)
+                # Mat zeroMat = np.zeros(subMat.size(),subMat.type())
+                # zeroMat.copyTo(subMat)
 
                 # cv2.imshow("crop", crop)
                 # cv2.waitKey(0)
@@ -192,15 +200,22 @@ for c in cnts:
                 bouding = image.copy()
                 
                 # draw a green rectangle to visualize the bounding rect
-                #cv2.drawContours(bouding, cv2.boundingRect(approx), -1, (0, 255, 0), 5)
-                #cv2.rectangle(bouding, (x -8, y -8), (x + w + 8, y + h + 8), (0, 255, 0), 5)
+                # cv2.drawContours(bouding, cv2.boundingRect(approx), -1, (0, 255, 0), 5)
+                # cv2.rectangle(bouding, (x -8, y -8), (x + w + 8, y + h + 8), (0, 255, 0), 5)
                 cv2.rectangle(bouding, (x, y), (x + w, y + h), (0, 255, 0), 5)
                 
-                #cv2.imshow("Boundingbox", bouding)
-                #cv2.imwrite("boundingbox.jpg", bouding)
-                #cv2.waitKey(0)
+                # cv2.imshow("Boundingbox", bouding)
+                # cv2.imwrite("boundingbox.jpg", bouding)
+                # cv2.waitKey(0)
 
                 crop = blur[y:y+h, x:x+w]
+
+                # TODO: Exctract features
+                # - Dominate color
+                # - How many angles
+                # - 
+
+                # TODO: Clean image using mask of the perimeter
 
                 # cv2.imshow("crop", crop)
                 # cv2.waitKey(0)
@@ -240,10 +255,10 @@ for c in cnts:
                 cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 5)
 
                 cv2.imshow("object", image)
-                #cv2.imwrite("object.jpg", image)
+                # cv2.imwrite("object.jpg", image)
                 cv2.waitKey(0)
 
-                #res = np.hstack((original, edged, image))
+                # res = np.hstack((original, edged, image))
 
                 # Extrair a característica:
                 # Encontrar o histograma de cada camada
@@ -252,11 +267,11 @@ for c in cnts:
 		# Compute Zernike moments to characterize the shape of object outline
                 moments = zm.describe(thresh)
 
-                #print(moments)
+                # print(moments)
 
                 # Utilizar o dataset anotado de placas e comparar utilizando distância Euclidiana
                 # Return 5 first similarities
-                results = searcher.search(indexa, moments)[:5]
+                results = searcher.search(indexa, moments)[:20]
                 for r in results:
                         image_ref = r[1]
                         image_distance = r[0]
