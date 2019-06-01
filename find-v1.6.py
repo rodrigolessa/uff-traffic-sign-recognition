@@ -1,10 +1,13 @@
+# v1.6 - Utilizando extração de contornos aplicado direto na imagem gray
+#  e depois extraido o Zernike, ficou muito complexo e não produziu bons resultados.
+
 # The main goal is to find the traffic sign in a photo and highlight it
 
 # Import the necessary packages
 from zernike_moments import ZernikeMoments
 from searcher import Searcher
 # import myutils as ut
-# The img_utils contains convenience methods to handle basic img processing techniques
+# The image_utils contains convenience methods to handle basic image processing techniques
 # resizing, rotating, and translating. 
 import imutils
 import numpy as np
@@ -13,10 +16,10 @@ import cv2
 import pickle as cp
 import matplotlib.pyplot as plt
 
-def _img_resize(img, imSize):
-	new = imutils.resize(img, height=imSize)
+def _img_resize(image, imSize):
+	new = imutils.resize(image, height=imSize)
 	if new.shape[1] > imSize:
-		new = imutils.resize(img, width=imSize)
+		new = imutils.resize(image, width=imSize)
 
 	border_size_x = (imSize - new.shape[1])//2
 	border_size_y = (imSize - new.shape[0])//2
@@ -27,106 +30,82 @@ def _img_resize(img, imSize):
 
 # construct the argument parser and parse the arguments
 #ap = argparse.ArgumentParser()
-#ap.add_argument("-q", "--query", required = True, help = "Path to the query img")
+#ap.add_argument("-q", "--query", required = True, help = "Path to the query image")
 # Only need one command line argument: 
-# --query points to the path to where query img is stored on disk.
+# --query points to the path to where query image is stored on disk.
 #args = vars(ap.parse_args())
 
-######################################################
-# Parameters:
+# Tests signs:
+##########################################################
 
-#imgName = "sinalizacao_brasileira_fotos\\edit\\permitido_ciclistas.jpg"
-#imgName = "sinalizacao_brasileira_fotos\\edit\\Passagem_sinalizada_de_pedestres_a.jpg"
-imgName = "sinalizacao_brasileira_fotos\\edit\\Curva_acentuada_direita.jpg"
-#imgName = "sinalizacao_brasileira_fotos\\edit\\De_a_preferencia.jpg"
-# imgName = "sinalizacao_brasileira_fotos\\edit\\Parada_obrigatoria.jpg" 
+imageName = "sinalizacao_brasileira_fotos\\edit\\permitido_ciclistas.jpg"
+#  - similarity - v1
+
+imageName = "sinalizacao_brasileira_fotos\\edit\\Passagem_sinalizada_de_pedestres_a.jpg"
+
+imageName = "sinalizacao_brasileira_fotos\\edit\\Curva_acentuada_direita.jpg"
+
+#imageName = "sinalizacao_brasileira_fotos\\edit\\De_a_preferencia.jpg"
+
+# imageName = "sinalizacao_brasileira_fotos\\edit\\Parada_obrigatoria.jpg" 
 # 0.03862711197553565 - similarity - v1
-#imgName = "sinalizacao_brasileira_fotos\\edit\\Servicos_Auxiliares_i.png"
+
+#imageName = "sinalizacao_brasileira_fotos\\edit\\Servicos_Auxiliares_i.png"
 # 0.07263111311518465 - similarity - v1
-#imgName = "sinalizacao_brasileira_fotos\\edit\\Velocidade_maxima_permitida.jpg"
-#imgName = "sinalizacao_brasileira_fotos\\edit\\Proibido_transito_de_bicicletas_12.jpg"
 
-imgMomentsFileName = 'index.pkl'
+#imageName = "sinalizacao_brasileira_fotos\\edit\\Velocidade_maxima_permitida.jpg"
 
-imgRadius = 180
+#imageName = "sinalizacao_brasileira_fotos\\edit\\Proibido_transito_de_bicicletas_12.jpg"
+
+imageRadius = 180
 
 # Load the index of features
-imgMomentsFile = open(imgMomentsFileName, 'rb')
+imageMomentsFile = open('index.pkl', 'rb')
 
-indexA = cp.load(imgMomentsFile)
+indexa = cp.load(imageMomentsFile)
 
-# Perform the search to identify the img
-searcher = Searcher(indexA)
+# Perform the search to identify the image
+searcher = Searcher(indexa)
 
 # Initialize descriptor with a radius of 180 pixels
-zm = ZernikeMoments(imgRadius)
+zm = ZernikeMoments(180)
 
-######################################################
-# Load the query img, 
-img = cv2.imread(imgName)
+# Load the query image, 
+image = cv2.imread(imageName)
 
-# Resize it - The smaller the img is, the faster it is to process
-# img = cv2.resize(img, None, fx=0.95, fy=0.95, interpolation = cv2.INTER_CUBIC)
-# img = ut.resize(img, width = 500, inter = cv2.INTER_CUBIC)
-img = imutils.resize(img, height=500)
+# Only for the test image we have
+# image = imutils.rotate(image, 90, center = None, scale = 1.0)
 
-# Debugging: Show the original img
-cv2.imshow('original', img)
-#cv2.waitKey(0)
+# Compute the ratio of the old height
+# to the new height, clone it, and resize it
+# ratio = image.shape[0] / 200.0
+
+# Resize it - The smaller the image is, the faster it is to process
+# image = cv2.resize(image, None, fx=0.95, fy=0.95, interpolation = cv2.INTER_CUBIC)
+# image = ut.resize(image, width = 500, inter = cv2.INTER_CUBIC)
+image = imutils.resize(image, height=500)
+
+# Debugging: Show the original
+cv2.imshow('original', image)
+cv2.waitKey(0)
 
 ######################################################
 # Separar os canais
+# canais = cv2.split(image)
+# cores = ('blue', 'green', 'red')
+# b_channel, g_channel, r_channel = cv2.split(image)
 
-# TODO: Levar para outro espaço de cor: de RGB -> HSV
-# HSV - Sistemas de cores formado pelos componentes:
-# - Matiz (hue)
-#       Representa todas as cores puras. 
-#       Geralmente é representada por ângulos, 
-#       começa em 0 no vermelhor e termina em 360 também no vermelhor
-# - Saturação (saturation) 
-#       O quanto a cor possui o componente de cor branca
-# - Brilho (value) 
-#       Noção acromática de intensidade
+# cv2.imshow("Canais", r_channel)
+# cv2.waitKey(0)
 
-hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-hsvWhite = np.asarray([0, 0, 255])    # white!
-hsvYellow = np.asarray([40, 255, 255]) # yellow! note the order
-
-mask = cv2.inRange(hsv, hsvWhite, hsvYellow)
-#print(mask)
-
-
-# Bitwise-AND mask and original image
-res = cv2.bitwise_and(hsv, hsv, mask=mask)
-ratio = cv2.countNonZero(mask)/(hsv.size/3)
-print('pixel percentage:', np.round(ratio*100, 2))
-#plt.imshow(mask)
-
-cv2.imshow('mask',res)
-
-#plt.imshow(mask, cmap='gray')   # this colormap will display in black / white
-#plt.show()
-cv2.waitKey(0)
-
-
-(canalAzul, canalVerde, canalVermelho) = cv2.split(hsv)
-
-zeros = np.zeros(img.shape[:2], dtype = "uint8")
-
-cv2.imshow("Vermelho", cv2.merge([zeros, zeros, canalVermelho]))
-cv2.imshow("Verde", cv2.merge([zeros, canalVerde, zeros]))
-cv2.imshow("Azul", cv2.merge([canalAzul, zeros, zeros]))
-cv2.waitKey(0)
-
-# TODO: Obter as cores: Vermelhor, amarelo e azul
-# TODO: Obter a saturação em uma intensidade alta
+# Convert the image to grayscale,
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # cv2.imshow("grayscale", r_channel)
 # cv2.waitKey(0)
 
 ######################################################
-# Equalização baseado em histograma da imgm
+# Equalização baseado em histograma da imagem
 # CLAHE (Contrast Limited Adaptive Histogram Equalization)
 
 # create a CLAHE object (Arguments are optional).
@@ -140,22 +119,18 @@ cl1 = clahe.apply(gray)
 # cv2.imwrite("equalization.jpg", cl1) # save frame as JPEG file
 # cv2.waitKey(0)
 
-# Blur the img slightly by using the cv2.bilateralFilter function
-# Bilateral filtering has the nice property of removing noise in the img 
+# Blur the image slightly by using the cv2.bilateralFilter function
+# Bilateral filtering has the nice property of removing noise in the image 
 # while still preserving the actual edges.
 blur = cv2.bilateralFilter(cl1, 9, 75, 75)
-
-# TODO: Usando segmentação por cor
 
 # Debugging:
 cv2.imshow("blur", blur)
 cv2.waitKey(0)
 
-# TODO: Aplicar filtro Canny (#cani) ou outro mais simples para extrair contornos
-
-# Canny edge detector finds edge like regions in the img
+# Canny edge detector finds edge like regions in the image
 # The Canny edge detector is an edge detection operator that uses 
-# a multi-stage algorithm to detect a wide range of edges in imgs.
+# a multi-stage algorithm to detect a wide range of edges in images.
 # It was developed by John F. Canny in 1986. 
 # Canny also produced a computational theory of edge detection explaining why the technique works.
 edged = cv2.Canny(blur, 30, 200)
@@ -165,18 +140,14 @@ cv2.imshow("canny", edged)
 # cv2.imwrite("canny.jpg", edged)
 cv2.waitKey(0)
 
-# TODO: Aplicar filtros morfológicos
-
-# TODO: Aplicar a transformada de Hough (#Rufi)
-
-# Find contours in the edged img, keep only the largest ones, 
+# Find contours in the edged image, keep only the largest ones, 
 # and initialize our screen contour:
 # The cv2.findContours function gives us a list of contours that it has found.
 # The second parameter cv2.RETR_TREE tells OpenCV to compute the hierarchy 
 # (relationship) between contours,
 # We could have also used the cv2.RETR_LIST option as well;
 # To compress the contours to save space using cv2.CV_CHAIN_APPROX_SIMPLE.
-img2, cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+image2, cnts, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 # cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.cv2.CV_CHAIN_APPROX_NONE)[1]
 
 # Return only the 10 largest contours
@@ -189,11 +160,11 @@ img = blur.copy()
 
 # For each list of contour points...
 # for i in range(len(cnts)):
-        # Create a mask img that contains the contour filled in
+        # Create a mask image that contains the contour filled in
         # cimg = np.zeros_like(img)
         # cv2.drawContours(cimg, cnts, i, color=255, thickness=-1)
 
-        # Access the img pixels and create a 1D numpy array then add to list
+        # Access the image pixels and create a 1D numpy array then add to list
         # pts = np.where(cimg == 255)
         # lst_intensities.append(img[pts[0], pts[1]])
 
@@ -227,7 +198,7 @@ for c in cnts:
 
                 screenCnt = approx
                 
-                # Cortar a ára na imgm original
+                # Cortar a ára na imagem original
                 x, y, w, h = cv2.boundingRect(approx)
                 # make the box a little bigger
                 x, y, w, h = x - 8, y - 8, w + 8, h + 8
@@ -240,7 +211,7 @@ for c in cnts:
                 # cv2.imshow("crop", crop)
                 # cv2.waitKey(0)
 
-                bouding = img.copy()
+                bouding = image.copy()
                 
                 # draw a green rectangle to visualize the bounding rect
                 # cv2.drawContours(bouding, cv2.boundingRect(approx), -1, (0, 255, 0), 5)
@@ -258,17 +229,17 @@ for c in cnts:
                 # - How many angles
                 # - 
 
-                # TODO: Clean img using mask of the perimeter
+                # TODO: Clean image using mask of the perimeter
 
                 # cv2.imshow("crop", crop)
                 # cv2.waitKey(0)
 
-                # Redimencionar imgm
+                # Redimencionar imagem
                 # resized = _img_resize(crop, width = 180, inter = cv2.INTER_CUBIC)
-                # resized = _img_resize(blur, imgRadius)
+                # resized = _img_resize(blur, imageRadius)
                 resized = imutils.resize(crop, width=180)
 
-                # resized = add_border(resized, output_img='resized.jpg', border=100, color='white')
+                # resized = add_border(resized, output_image='resized.jpg', border=100, color='white')
                 row, col = resized.shape[:2]
                 bottom = resized[row-2:row, 0:col]
                 mean = cv2.mean(bottom)[0]
@@ -295,13 +266,13 @@ for c in cnts:
 
                 # Drawing our screen contours, we can clearly see that we have found the Object screen
                 # if isinstance(screenCnt, list):
-                cv2.drawContours(img, [screenCnt], -1, (0, 255, 0), 5)
+                cv2.drawContours(image, [screenCnt], -1, (0, 255, 0), 5)
 
-                cv2.imshow("object", img)
-                # cv2.imwrite("object.jpg", img)
+                cv2.imshow("object", image)
+                # cv2.imwrite("object.jpg", image)
                 cv2.waitKey(0)
 
-                # res = np.hstack((original, edged, img))
+                # res = np.hstack((original, edged, image))
 
                 # Extrair a característica:
                 # Encontrar o histograma de cada camada
@@ -314,13 +285,13 @@ for c in cnts:
 
                 # Utilizar o dataset anotado de placas e comparar utilizando distância Euclidiana
                 # Return 5 first similarities
-                results = searcher.search(indexA, moments)[:10]
+                results = searcher.search(indexa, moments)[:10]
                 for r in results:
-                        img_ref = r[1]
-                        img_distance = r[0]
+                        image_ref = r[1]
+                        image_distance = r[0]
 
-                        if img_distance <= 0.109:
-                                print("Objeto semelhante: {} - {}".format(img_distance, img_ref))
+                        if image_distance <= 0.109:
+                                print("Objeto semelhante: {} - {}".format(image_distance, image_ref))
 
                 break
 
