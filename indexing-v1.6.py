@@ -118,18 +118,10 @@ for spritePath in imagesInFolder:
 	# It's importante for Zernike calculate the moments correctly
 	bordersize = 100
 	# Create the border
-	bordered = cv2.copyMakeBorder(resized, 
-		top=bordersize, 
-		bottom=bordersize, 
-		left=bordersize, 
-		right=bordersize, 
-		borderType= cv2.BORDER_CONSTANT, value=[mean,mean,mean])
+	bordered = cv2.copyMakeBorder(resized, top=bordersize, bottom=bordersize, left=bordersize, right=bordersize, borderType= cv2.BORDER_CONSTANT, value=[mean,mean,mean])
 
 	# Then, any pixel with a value greater than zero (black) is set to 255 (white)
-	_, thresh = cv2.threshold(bordered, 
-		0, 
-		255, 
-		cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+	_, thresh = cv2.threshold(bordered, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
 	thresh = cv2.bitwise_not(thresh)
 
