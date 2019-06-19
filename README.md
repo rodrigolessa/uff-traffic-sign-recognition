@@ -10,9 +10,9 @@ Aura Conci
 
 ### Prerequisites
 
-* Conhecimento de Python
-* Conhecimento de análise de imagem
-* Conhecimento de visão computacional
+* Conhecimento em Python
+* Conhecimento em análise de imagem
+* Conhecimento em visão computacional
 
 ### Installing
 
