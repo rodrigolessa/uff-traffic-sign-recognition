@@ -151,7 +151,7 @@ cv2.waitKey(0)
 edges = cv2.Canny(interest, 50, 150, apertureSize = 3)
 # apertureSize = tamanho da abertura
 
-# Canny (#caní), Um filtro de concolução que utiliza a primeira derivada (gradiente) 
+# Canny (#caní), Um filtro de convolução que utiliza a primeira derivada (gradiente) 
 # para uniformizar o ruído identificar as bordas da imagem
 # - Utiliza Sobel
 # - Utiliza uma Gaussiana (X, y)

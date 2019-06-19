@@ -18,6 +18,7 @@ class Searcher:
 			# and features in our index, then update the results
 			# d = dist.euclidean(queryFeatures, features)
 			d = np.linalg.norm(queryFeatures - features)
+			# TODO: Testar distancia COSINE
 			#print('K: {}'.format(k))
 			#print('Features: {}'.format(features))
 			#print('Distance: {}'.format(d))
